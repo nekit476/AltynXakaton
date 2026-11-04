@@ -5,7 +5,7 @@ description = "«Зачётка» — личный кабинет студент
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "django>=5.2,<5.3",
+    "django>=5.2,<6.2",
     "psycopg[binary]>=3.2",
     "django-environ>=0.12",
     "redis>=5.2",
