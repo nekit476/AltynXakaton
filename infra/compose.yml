@@ -66,8 +66,9 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
     # Миграции перед стартом — удобство локального стенда. На проде их запускает deploy.sh (#15).
     command: ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn core.wsgi:application"]
-    ports:
-      - "127.0.0.1:8080:8000"
+    # Наружу порт не публикуется: снаружи доступен только Caddy, как на проде.
+    expose:
+      - "8000"
     volumes:
       - files:/app/var/files
     depends_on:
@@ -103,7 +104,26 @@ services:
       web:
         condition: service_healthy
 
+  caddy:
+    profiles: [app]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      # :80 — локальный http; на VPS здесь домен, и Caddy сам получит сертификат.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Файлы ДЗ — только чтение: Caddy их отдаёт по X-Accel-Redirect, но не меняет.
+      - files:/srv/files:ro
+      - caddydata:/data
+    depends_on:
+      web:
+        condition: service_healthy
+
 volumes:
   pgdata:
   redisdata:
   files:
+  caddydata:

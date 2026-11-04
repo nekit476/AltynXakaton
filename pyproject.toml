@@ -83,6 +83,7 @@ sequence = [
     "ruff format --check .",
     "djlint core domain web --lint",
     "djlint core domain web --check",
+    "python scripts/check_forbidden.py",
 ]
 
 [tool.poe.tasks.fmt]
