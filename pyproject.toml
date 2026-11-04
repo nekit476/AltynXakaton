@@ -1,0 +1,173 @@
+[project]
+name = "dekanat"
+version = "0.1.0"
+description = "«Зачётка» — личный кабинет студента, преподавателя и администратора. Концепт для конкурса «Цифровой деканат будущего»."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "django>=5.2,<5.3",
+    "psycopg[binary]>=3.2",
+    "django-environ>=0.12",
+    "redis>=5.2",
+    "celery>=5.5",
+    "django-htmx>=1.23",
+    "whitenoise>=6.9",
+    # gunicorn работает только на Linux (fcntl): на Windows локально запускается runserver.
+    "gunicorn>=23; sys_platform != 'win32'",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.11",
+    "factory-boy>=3.3",
+    "allure-pytest>=2.13",
+    "ruff>=0.14",
+    "djlint>=1.36",
+    "pre-commit>=4.0",
+    "poethepoet>=0.34",
+    # Генератор трекеров в tracker/ — чтобы `uv run python tracker/build_trackers.py` работал без отдельной установки.
+    "openpyxl>=3.1",
+]
+
+[tool.uv]
+# Это Django-проект, а не библиотека: ставить его самого в окружение не нужно.
+package = false
+
+# ---------------------------------------------------------------- команды
+# Запуск: `uv run poe <команда>`, список: `uv run poe`.
+# Make на Windows из коробки нет, а poe работает одинаково на Windows, Linux и в CI.
+
+[tool.poe.tasks.setup]
+help = "Первичная настройка: .env, git-хуки, проверка связи с БД (повторный запуск безопасен)"
+cmd = "python scripts/bootstrap.py"
+
+[tool.poe.tasks.dev]
+help = "Локальный сервер на http://127.0.0.1:8000"
+cmd = "python manage.py runserver 127.0.0.1:8000"
+
+[tool.poe.tasks.migrate]
+help = "Применить миграции к своей базе"
+cmd = "python manage.py migrate"
+
+[tool.poe.tasks.makemigrations]
+help = "Создать миграции по изменённым моделям"
+cmd = "python manage.py makemigrations"
+
+[tool.poe.tasks.superuser]
+help = "Создать командный аккаунт для Django admin"
+cmd = "python manage.py createsuperuser"
+
+[tool.poe.tasks.shell]
+help = "Django shell"
+cmd = "python manage.py shell"
+
+[tool.poe.tasks.worker]
+help = "Celery-воркер (нужен REDIS_URL; без него задачи выполняются сразу, воркер не нужен)"
+# solo: prefork на Windows не работает, а для разработки одного процесса хватает.
+cmd = "celery -A core worker -l info -P solo"
+
+[tool.poe.tasks.beat]
+help = "Celery Beat — планировщик периодических задач"
+cmd = "celery -A core beat -l info"
+
+[tool.poe.tasks.test]
+help = "Все тесты (pytest). Аргументы пробрасываются: poe test -k users"
+cmd = "pytest"
+
+[tool.poe.tasks.lint]
+help = "Линтеры: ruff + djlint (как в CI)"
+default_item_type = "cmd"
+sequence = [
+    "ruff check .",
+    "ruff format --check .",
+    "djlint core domain web --lint",
+    "djlint core domain web --check",
+]
+
+[tool.poe.tasks.fmt]
+help = "Отформатировать код и шаблоны, поправить то, что ruff чинит сам"
+default_item_type = "cmd"
+sequence = ["ruff format .", "ruff check --fix .", "djlint core domain web --reformat"]
+
+[tool.poe.tasks.check]
+help = "Проверки Django: system check и забытые миграции"
+default_item_type = "cmd"
+sequence = [
+    "python manage.py check",
+    "python manage.py makemigrations --check --dry-run",
+]
+
+[tool.poe.tasks.db-check]
+help = "Проверить связь с БД из DATABASE_URL"
+cmd = "python scripts/bootstrap.py --check-only"
+
+[tool.poe.tasks.db-up]
+help = "Поднять сервер PostgreSQL + Redis в Docker (только у того, кто держит БД)"
+cmd = "docker compose -f infra/compose.yml --env-file .env up -d --wait postgres redis"
+
+[tool.poe.tasks.db-down]
+help = "Остановить PostgreSQL + Redis (данные остаются в томе)"
+cmd = "docker compose -f infra/compose.yml --env-file .env stop postgres redis"
+
+[tool.poe.tasks.db-logs]
+help = "Логи PostgreSQL и Redis"
+cmd = "docker compose -f infra/compose.yml --env-file .env logs -f --tail 100 postgres redis"
+
+[tool.poe.tasks.db-psql]
+help = "psql внутри контейнера PostgreSQL"
+cmd = "docker compose -f infra/compose.yml --env-file .env exec postgres sh -c 'psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\"'"
+
+[tool.poe.tasks.app-up]
+help = "Весь стенд в Docker: БД, Redis, web, worker, beat (http://127.0.0.1:8080)"
+cmd = "docker compose -f infra/compose.yml --env-file .env --profile app up -d --build --wait"
+
+[tool.poe.tasks.app-down]
+help = "Остановить весь стенд в Docker"
+cmd = "docker compose -f infra/compose.yml --env-file .env --profile app down"
+
+# ---------------------------------------------------------------- pytest
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings.test"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["--strict-markers", "-ra"]
+filterwarnings = [
+    # WhiteNoise предупреждает, что нет staticfiles/: его создаёт collectstatic только в образе.
+    "ignore:No directory at:UserWarning:django.core.handlers.base",
+]
+markers = [
+    "e2e: сквозные сценарии в браузере (Playwright) — идут отдельной стадией после деплоя на staging",
+]
+
+# ---------------------------------------------------------------- ruff
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+# У tracker/ свой ruff.toml и свой стиль; docs/ — не код; миграции генерирует Django.
+extend-exclude = ["tracker", "docs", "**/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "DJ", "S", "PT"]
+# Кириллица в строках и комментариях — норма для проекта.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# assert — основной инструмент pytest; фиксированные пароли в тестах — тестовые данные.
+"tests/**" = ["S101", "S105", "S106"]
+# Тестовый SECRET_KEY и пароль из примера — не секреты.
+"core/settings/test.py" = ["S105"]
+# Скрипт первичной настройки вызывает git/pre-commit из PATH — это и есть его работа.
+"scripts/bootstrap.py" = ["S603", "S607"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "domain", "web", "tests", "scripts"]
+
+# ---------------------------------------------------------------- djlint
+
+[tool.djlint]
+profile = "django"
+indent = 2
+max_line_length = 120

@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Зачётка{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  </head>
+  <body>
+    <div class="concept-banner"
+         role="note">Концепт для конкурса «Цифровой деканат будущего», не официальный сервис</div>
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

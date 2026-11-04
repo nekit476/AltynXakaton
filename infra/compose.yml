@@ -1,0 +1,109 @@
+# Стенд для разработки. Запуск — из корня репозитория через poe:
+#   uv run poe db-up    PostgreSQL + Redis — «сервер БД» для всей команды
+#   uv run poe app-up   плюс web, worker, beat из одного образа (профиль app)
+# Переменные берутся из .env (--env-file .env).
+#
+# Тот же файл годится для удалённого сервера разработки: порты слушают 127.0.0.1,
+# коллеги подключаются через SSH-туннель (PROJECT.md, «База данных»).
+# Прод-конфигурация с Caddy и лимитами памяти — задачи #5 и #15.
+
+name: dekanat
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dekanat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задай POSTGRES_PASSWORD в .env}
+      POSTGRES_DB: ${POSTGRES_DB:-dekanat}
+      # Базы участников создаёт скрипт из initdb/ при первом запуске тома.
+      DEV_DATABASES: ${DEV_DATABASES:-}
+    ports:
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # AOF: очередь Celery переживает перезапуск Redis (04_infra.md §5).
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?задай REDIS_PASSWORD в .env}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_BIND:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ------------------------------------------------------------------ приложение (профиль app)
+  web:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: dekanat:local
+    # Локальный стенд работает по http, поэтому dev-настройки (prod требует HTTPS-cookie).
+    environment: &app-env
+      DJANGO_SETTINGS_MODULE: core.settings.dev
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?задай DJANGO_SECRET_KEY в .env}
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_ADMIN_PATH: ${DJANGO_ADMIN_PATH:-team-admin/}
+      # Внутри сети compose приложение ходит в сервисы по именам, а не через проброшенные порты.
+      DATABASE_URL: postgres://${POSTGRES_USER:-dekanat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dekanat}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+    # Миграции перед стартом — удобство локального стенда. На проде их запускает deploy.sh (#15).
+    command: ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn core.wsgi:application"]
+    ports:
+      - "127.0.0.1:8080:8000"
+    volumes:
+      - files:/app/var/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  worker:
+    profiles: [app]
+    image: dekanat:local
+    environment: *app-env
+    command: ["celery", "-A", "core", "worker", "-l", "info", "--concurrency", "2"]
+    volumes:
+      - files:/app/var/files
+    depends_on:
+      web:
+        condition: service_healthy
+
+  beat:
+    profiles: [app]
+    image: dekanat:local
+    environment: *app-env
+    # Файл расписания — во временном каталоге: в /app у пользователя app нет прав на запись.
+    command: ["celery", "-A", "core", "beat", "-l", "info", "-s", "/tmp/celerybeat-schedule"]
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  files:

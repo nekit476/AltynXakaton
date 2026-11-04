@@ -1,0 +1,22 @@
+# В образ — только то, что нужно для запуска.
+.git
+.venv
+.env
+.env.*
+!.env.example
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.ruff_cache
+allure-results
+allure-report
+staticfiles
+var
+docs
+tracker
+tests
+infra
+.claude
+.github
+*.md
+!README.md

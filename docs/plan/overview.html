@@ -1,0 +1,305 @@
+<title>План «Зачётки»</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: одна колонка ~1040px, разделы как страницы зачётной книжки — подпись слева, содержимое справа */
+:root{
+  --bg:#f3f5f4; --paper:#ffffff; --fg:#14211f; --muted:#5b6b68; --line:#d9e0de;
+  --accent:#0e5c57; --accent-soft:#dcebe9; --flame:#c76a12; --flame-soft:#f6e6d4;
+  --a:#0e5c57; --b:#6a4fb3; --c:#c76a12; --weekend:#e9eeec;
+  --ok:#2f7d4a; --warn:#a35b00;
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1716; --paper:#16201f; --fg:#e3ebe9; --muted:#93a4a0; --line:#2a3836;
+  --accent:#5fc0b6; --accent-soft:#1c3533; --flame:#f0a050; --flame-soft:#3a2a18;
+  --a:#5fc0b6; --b:#a991f0; --c:#f0a050; --weekend:#1b2726; --ok:#6cc58a; --warn:#f0b050;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1716; --paper:#16201f; --fg:#e3ebe9; --muted:#93a4a0; --line:#2a3836;
+  --accent:#5fc0b6; --accent-soft:#1c3533; --flame:#f0a050; --flame-soft:#3a2a18;
+  --a:#5fc0b6; --b:#a991f0; --c:#f0a050; --weekend:#1b2726; --ok:#6cc58a; --warn:#f0b050;
+  color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{text-wrap:balance;margin:0}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.1;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:20px}
+h3{font-size:15px;font-weight:600}
+p{margin:0;max-width:68ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header{display:flex;flex-direction:column;gap:14px;padding-bottom:8px}
+.banner{align-self:flex-start;background:var(--flame-soft);color:var(--flame);font-weight:600;font-size:12px;padding:4px 10px;border-radius:999px}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:6px}
+.facts div{display:flex;flex-direction:column}
+.facts b{font-family:var(--f-mono);font-size:22px;font-weight:600}
+section{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;grid-template-columns:180px 1fr;gap:20px}
+section>.side{display:flex;flex-direction:column;gap:6px}
+section>.body{min-width:0;display:flex;flex-direction:column;gap:16px}
+@media (max-width:760px){section{grid-template-columns:1fr;padding:18px}}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* Гант */
+.gantt{display:grid;grid-template-columns:150px repeat(19,minmax(30px,1fr));min-width:760px;font-size:12px}
+.gantt .d{text-align:center;padding:4px 0;color:var(--muted);border-bottom:1px solid var(--line)}
+.gantt .d b{display:block;color:var(--fg);font-family:var(--f-mono);font-size:13px}
+.gantt .we{background:var(--weekend)}
+.gantt .rl{padding:8px 8px 8px 0;font-weight:600;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.gantt .cell{border-bottom:1px solid var(--line);position:relative}
+.bar{margin:7px 0;height:22px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+:root .bar.s4{background:var(--b)} .bar.s5{background:var(--flame)}
+.demo{color:var(--flame);font-weight:700;text-align:center;padding:6px 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+/* Команда */
+.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.team{grid-template-columns:1fr}}
+.who{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--k)}
+.who h3{display:flex;gap:8px;align-items:baseline}
+.who .tag{font-family:var(--f-mono);color:var(--k);font-weight:600}
+.who ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.who .zone{font-size:12px;font-family:var(--f-mono);color:var(--muted);word-break:break-word}
+/* Таблицы */
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{font-family:var(--f-mono);text-align:right;white-space:nowrap}
+/* Память */
+.ram{display:flex;height:38px;border-radius:8px;overflow:hidden;border:1px solid var(--line);min-width:640px}
+.ram span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;border-right:1px solid var(--paper)}
+.ram .free{background:repeating-linear-gradient(135deg,var(--weekend) 0 6px,var(--paper) 6px 12px);color:var(--muted)}
+.ramkey{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted);min-width:640px;margin-top:4px}
+/* Пайплайн */
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.step{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;background:var(--bg)}
+.step b{display:block;font-size:12px;color:var(--accent)}
+.arrow{color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.box ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+pre.mermaid{background:var(--bg);border-radius:10px;padding:12px;margin:0;overflow-x:auto}
+code{font-family:var(--f-mono);font-size:13px;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.files div{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px}
+.files code{display:block;margin-bottom:4px;background:none;padding:0;color:var(--accent);font-weight:600}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--flame);outline-offset:2px}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="banner">Концепт для конкурса «Цифровой деканат будущего»</span>
+  <h1>«Зачётка»: план разработки</h1>
+  <p class="muted">Личный кабинет студента, преподавателя и администратора. Разрабатываем с 4 по 22 ноября втроём, у каждого свой Claude Code. Сайт живёт на своём VPS и работает до 28 ноября. Подробности по каждому разделу лежат в <code>dekanat/docs/plan/</code>.</p>
+  <div class="facts">
+    <div><b>19</b><span class="label">дней</span></div>
+    <div><b>6</b><span class="label">этапов</span></div>
+    <div><b>75</b><span class="label">задач в бэклоге</span></div>
+    <div><b>3</b><span class="label">роли в системе</span></div>
+    <div><b>300 RPS</b><span class="label">цель, p95 &lt; 300 мс</span></div>
+  </div>
+</header>
+
+<section aria-labelledby="h-road">
+  <div class="side"><span class="label">Когда</span><h2 id="h-road">Роадмап</h2><p class="muted">Ядро конкурса готово к 12.11, раньше «вау». 19.11 вечером заморозка функций.</p></div>
+  <div class="body">
+    <div class="scroll"><div class="gantt" id="gantt"></div></div>
+    <div class="legend"><span><i style="background:var(--weekend)"></i>выходные (4.11 — праздник)</span><span style="color:var(--flame);font-weight:700">◆ демо на staging</span><span>8.11 19:00 открывается приём, сразу шлём черновик</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-team">
+  <div class="side"><span class="label">Кто</span><h2 id="h-team">Команда</h2><p class="muted">Монолит делим по слоям. Контракт между B и C — сигнатуры сервисов с заглушками, поэтому C не ждёт реализации.</p></div>
+  <div class="body">
+    <div class="team">
+      <div class="who" style="--k:var(--a)">
+        <h3><span class="tag">A</span>Платформа и качество</h3>
+        <span class="muted" style="font-size:13px">Никита</span>
+        <ul>
+          <li>Django-каркас, <code>CLAUDE.md</code>, агенты и хуки</li>
+          <li>VPS, Docker Compose, Caddy, CI/CD</li>
+          <li>Вход, сессии, права, аудит</li>
+          <li>Экраны админки и статистика</li>
+          <li>Матрица прав, E2E, k6, ZAP</li>
+          <li>Отчёты по безопасности и нагрузке</li>
+        </ul>
+        <span class="zone">config/ apps/core accounts adminpanel tests/ infra/ .github/ .claude/ load/</span>
+      </div>
+      <div class="who" style="--k:var(--b)">
+        <h3><span class="tag">B</span>Учебная логика</h3>
+        <span class="muted" style="font-size:13px">участник 2</span>
+        <ul>
+          <li>Модели, миграции, сидер</li>
+          <li>Сервисный контракт для C</li>
+          <li>Расписание, переносы, конфликты</li>
+          <li>Курсы, ДЗ, политики опоздания</li>
+          <li>Оценки, учебный план, справки PDF+QR</li>
+          <li>Celery: напоминания, уведомления</li>
+        </ul>
+        <span class="zone">apps/*: models services selectors forms tasks · apps/org · apps/seed</span>
+      </div>
+      <div class="who" style="--k:var(--c)">
+        <h3><span class="tag">C</span>Интерфейс и продукт</h3>
+        <span class="muted" style="font-size:13px">участник 3</span>
+        <ul>
+          <li>Опрос студентов, разбор старого ЛК</li>
+          <li>Дизайн-система на Tailwind, логотип</li>
+          <li>Views, шаблоны и HTMX-фрагменты</li>
+          <li>Мобильная версия, PWA, тёмная тема</li>
+          <li>Доступность, Lighthouse, E2E</li>
+          <li>Видео и сборка PDF для жюри</li>
+        </ul>
+        <span class="zone">apps/*: views urls · templates/ · static/ · docs/screens/</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-arch">
+  <div class="side"><span class="label">Как</span><h2 id="h-arch">Архитектура</h2><p class="muted">Монолит на Django. Наружу открыты только 80 и 443. web, worker и beat собраны из одного образа.</p></div>
+  <div class="body">
+<pre class="mermaid">
+flowchart LR
+  U[Браузер / телефон] -->|HTTPS 443| C[caddy<br/>TLS, заголовки, буфер загрузок]
+  C --> D[web<br/>Django + HTMX, gunicorn 6x4]
+  D --> P[(PostgreSQL 17)]
+  D --> R[(Redis<br/>сессии, кэш, очередь)]
+  W[worker<br/>Celery: PDF, уведомления] --> P
+  W --> R
+  B[beat<br/>напоминания каждые 5 мин] --> R
+  D --- F[/том files/]
+  C -.X-Accel.- F
+</pre>
+    <div class="scroll"><table>
+      <thead><tr><th>Слой</th><th>Выбор</th><th>Почему не другое</th></tr></thead>
+      <tbody>
+        <tr><td>Ядро</td><td>Python 3.13, Django 5.2 LTS, gunicorn</td><td>Вход, сессии, CSRF, формы, права и миграции из коробки. FastAPI + React потребовал бы второй язык, контракт OpenAPI и самописный вход.</td></tr>
+        <tr><td>Интерфейс</td><td>Django-шаблоны, HTMX, Tailwind (CLI без Node), Alpine CSP</td><td>Фрагменты HTML без перезагрузки, JS почти нет. NiceGUI и Reflex держат состояние каждой вкладки на сервере и плохо масштабируются.</td></tr>
+        <tr><td>Данные</td><td>PostgreSQL 17, Redis 7</td><td>Данные реляционные. Сессии <code>cached_db</code>: скорость Redis, и сессии переживают его перезапуск.</td></tr>
+        <tr><td>Фон</td><td>Celery + Beat через Redis, WeasyPrint</td><td>RabbitMQ не нужен: сдача ДЗ синхронная, а фоновые задачи Redis тянет. Переход — одна настройка.</td></tr>
+        <tr><td>Инфра</td><td>Docker Compose, Caddy, GitHub Actions, GHCR</td><td>Kubernetes на одном VPS избыточен. Cloudflare не берём ради доступа из РФ без VPN.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-vps">
+  <div class="side"><span class="label">Где</span><h2 id="h-vps">VPS</h2><p class="muted">4 vCPU / 8 ГБ / 80 ГБ NVMe в Москве. Timeweb Cloud: ~2–5 тыс. ₽/мес, цену проверить в кабинете.</p></div>
+  <div class="body">
+    <div class="scroll">
+      <div class="ram" role="img" aria-label="Распределение 8 ГБ RAM по контейнерам" id="ram"></div>
+      <div class="ramkey"><span>0</span><span>2 ГБ</span><span>4 ГБ</span><span>6 ГБ</span><span>8 ГБ</span></div>
+    </div>
+    <p>Приложение занимает ~4,9 ГБ, мониторинг ещё 0,6 ГБ, свободно ~1,9 ГБ (кэш PostgreSQL, всплески). <b>4 ГБ мало:</b> под нагрузочным тестом начнётся swap, и цифры потеряют смысл. Каждый вход тратит 19 МиБ на argon2id. У Django по умолчанию было бы 100 МиБ, поэтому хешер свой, а число одновременных хешей ограничено 24 потоками gunicorn.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Нагрузка</th><th class="num">Значение</th><th>Откуда</th></tr></thead>
+      <tbody>
+        <tr><td>Пользователей</td><td class="num">15 000</td><td>~10 тыс. очных студентов + преподаватели + запас</td></tr>
+        <tr><td>Одновременно в пик</td><td class="num">3 000</td><td>утро перед первой парой</td></tr>
+        <tr><td>Устойчиво / пики</td><td class="num">300 / 500 RPS</td><td>1 запрос на активного раз в 10 с</td></tr>
+        <tr><td>Сдача ДЗ в последний час</td><td class="num">≈70 Мбит/с</td><td>500 × 5 МБ за 5 минут</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-sec">
+  <div class="side"><span class="label">Защита</span><h2 id="h-sec">Безопасность</h2><p class="muted">Главный риск — ручка без проверки прав, которую написал ИИ. Ловим автоматикой, а не внимательностью.</p></div>
+  <div class="body">
+    <div class="grid2">
+      <div class="box"><h3>Права</h3><ul>
+        <li><code>LoginRequiredMiddleware</code> по умолчанию, у каждого view <code>@require_perm</code>, а тест-сторож падает, если его нет</li>
+        <li>Матрица «роль × URL × свой/чужой × GET/POST/HTMX» в CI блокирует merge</li>
+        <li>Чужой объект отдаёт 404, а не 403</li>
+        <li>Субагент <code>security-reviewer</code> смотрит каждый PR</li></ul></div>
+      <div class="box"><h3>Вход</h3><ul>
+        <li>argon2id со своим хешером (19 МиБ, t=2, p=1)</li>
+        <li>Cookie <code>__Host-sessionid</code>: HttpOnly, Secure, SameSite</li>
+        <li>CSRF Django с токеном в <code>hx-headers</code>, django-axes по логину (вуз сидит за одним NAT)</li>
+        <li>Админ: 8-часовая сессия, аудит, опционально TOTP</li></ul></div>
+      <div class="box"><h3>Файлы и PDF</h3><ul>
+        <li>Проверка сигнатуры, а не только расширения; хранение вне веб-корня</li>
+        <li>Отдача только после проверки прав, attachment + nosniff</li>
+        <li>У WeasyPrint свой <code>url_fetcher</code>, чтобы закрыть SSRF</li></ul></div>
+      <div class="box"><h3>Сервер</h3><ul>
+        <li>SSH только по ключам, ufw 22/80/443, fail2ban</li>
+        <li>БД и Redis без портов наружу, контейнеры не от root</li>
+        <li>Секреты только в <code>.env</code> на сервере, gitleaks</li>
+        <li>Ночной <code>pg_dump</code> и проверенное восстановление</li></ul></div>
+    </div>
+    <p class="muted" style="font-size:13px">Меры разложены по категориям OWASP Top 10:2025, чек-лист перед сдачей — в <code>03_security.md</code>.</p>
+  </div>
+</section>
+
+<section aria-labelledby="h-ci">
+  <div class="side"><span class="label">Проверка</span><h2 id="h-ci">Тесты и CI</h2><p class="muted">В прод едет тот же образ, что прошёл staging.</p></div>
+  <div class="body">
+    <div class="pipe">
+      <div class="step"><b>PR</b>ruff · djlint · pytest · authz · check --deploy · gitleaks · pip-audit</div><span class="arrow">→</span>
+      <div class="step"><b>merge</b>сборка образов · Trivy</div><span class="arrow">→</span>
+      <div class="step"><b>staging</b>деплой · Playwright 360px · axe · ZAP</div><span class="arrow">→</span>
+      <div class="step"><b>тег v*</b>прод · smoke</div>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Сценарий k6</th><th>Профиль</th><th>Порог</th></tr></thead>
+      <tbody>
+        <tr><td>morning_rush</td><td>0 → 2000 VU за 5 мин</td><td>p95 &lt; 300 мс, ошибок &lt; 0,5 %</td></tr>
+        <tr><td>grades_published</td><td>0 → 1500 VU за 30 с</td><td>p95 &lt; 500 мс</td></tr>
+        <tr><td>deadline_rush</td><td>500 VU, файлы 2–10 МБ</td><td>p95 загрузки &lt; 1 с</td></tr>
+        <tr><td>stress / soak / scale_out</td><td>до отказа / 1 ч / две копии web</td><td>потолок RPS, утечки, отсутствие состояния в web</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-files">
+  <div class="side"><span class="label">Детали</span><h2 id="h-files">Файлы плана</h2></div>
+  <div class="body"><div class="files">
+    <div><code>01_product.md</code>Проблема, разбор старого ЛК, роли, функционал по MoSCoW, экраны</div>
+    <div><code>02_architecture.md</code>Стек, отвергнутые варианты (FastAPI + React, RabbitMQ), слои, URL-карта, структура репозитория</div>
+    <div><code>03_security.md</code>Модель угроз, OWASP → меры, сессии, файлы, чек-лист</div>
+    <div><code>04_infra.md</code>Расчёт RAM, CPU и диска, провайдеры, деплой и откат</div>
+    <div><code>05_quality.md</code>Пирамида тестов, k6, CI/CD, Definition of Done</div>
+    <div><code>06_team_roadmap.md</code>Роли, задачи по этапам, ритуалы, Claude, риски</div>
+    <div><code>07_backlog.md</code>75 задач с владельцем, датами и блокерами, генерируется из трекера</div>
+    <div><code>tracker/</code>Excel: общий трекер и личные с блокерами и планом по дням</div>
+  </div></div>
+</section>
+</div>
+
+<script>
+(function(){
+  var days=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  var wd=['Ср','Чт','Пт','Сб','Вс','Пн','Вт','Ср','Чт','Пт','Сб','Вс','Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  var we=function(i){return wd[i]==='Сб'||wd[i]==='Вс'||days[i]===4};
+  var stages=[['S0 Старт',4,5,''],['S1 Скелет',6,8,''],['S2 Ядро',9,12,''],['S3 Преп. + админ',13,16,''],['S4 Вау + полировка',17,19,'s4'],['S5 Тесты + выпуск',20,22,'s5']];
+  var demos=[5,8,12,16,19,22];
+  var g=document.getElementById('gantt'),h='<div></div>';
+  days.forEach(function(d,i){h+='<div class="d'+(we(i)?' we':'')+'"><b>'+d+'</b>'+wd[i]+'</div>'});
+  stages.forEach(function(s){
+    h+='<div class="rl">'+s[0]+'</div>';
+    var from=days.indexOf(s[1]),to=days.indexOf(s[2]);
+    days.forEach(function(d,i){
+      if(i===from){h+='<div class="cell" style="grid-column:span '+(to-from+1)+'"><div class="bar '+s[3]+'">'+s[1]+'–'+s[2]+'.11</div></div>'}
+      else if(i<from||i>to){h+='<div class="cell'+(we(i)?' we':'')+'"></div>'}
+    });
+  });
+  h+='<div class="rl" style="border:0">Демо</div>';
+  days.forEach(function(d,i){h+='<div class="demo">'+(demos.indexOf(d)>-1?'◆':'')+'</div>'});
+  g.innerHTML=h;
+  var parts=[['ОС',600,'#7b8a87'],['caddy',128,'#9aa6a3'],['web',1536,'var(--a)'],['worker',768,'var(--b)'],['beat',128,'#8a78c4'],['postgres',2048,'#2b6f9e'],['redis',384,'#b5483b'],['мониторинг',640,'var(--c)']];
+  var used=0,r='';
+  parts.forEach(function(p){used+=p[1];r+='<span style="width:'+(p[1]/81.92)+'%;background:'+p[2]+'" title="'+p[0]+' '+p[1]+' МБ">'+(p[1]>=380?p[0]+' '+(p[1]>=1000?(p[1]/1024).toFixed(1)+' ГБ':p[1]+' МБ'):'')+'</span>'});
+  var free=8192-used;
+  r+='<span class="free" style="width:'+(free/81.92)+'%">свободно '+(free/1024).toFixed(1)+' ГБ</span>';
+  document.getElementById('ram').innerHTML=r;
+})();
+</script>
