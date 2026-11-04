@@ -1,33 +1,33 @@
 {% extends "base.html" %}
+{% block title %}Сегодня — Зачётка{% endblock %}
 {% block content %}
-  <h1>Зачётка</h1>
-  <p class="lead">Ты вошёл как {{ user.get_role_display|lower }}. Здесь будет экран «Сегодня».</p>
+  <h1>Сегодня</h1>
+  <p class="lead">Ты вошёл как {{ user.get_role_display|lower }}. Данные на экранах пока заглушки.</p>
   <section class="card">
-    <h2>Модули</h2>
-    <ul>
-      <li>
-        <code>core/</code> — участник 1 (A): платформа, пользователи, права, служебные URL
-      </li>
-      <li>
-        <code>domain/</code> — участник 2 (B): модели, сервисы, селекторы, задачи
-      </li>
-      <li>
-        <code>web/</code> — участник 3 (C): views, шаблоны, статика
-      </li>
-      <li>
-        <code>tests/</code> — все тесты по модулям
-      </li>
-    </ul>
+    <h2>Пары сегодня</h2>
+    {% for lesson in lessons %}
+      <p>
+        <strong>{{ lesson.time }}</strong> · {{ lesson.subject }} ({{ lesson.kind|lower }}) · {{ lesson.room }}
+      </p>
+    {% empty %}
+      <p class="lead">Сегодня пар нет.</p>
+    {% endfor %}
   </section>
   <section class="card">
-    <h2>Служебное</h2>
-    <ul>
-      <li>
-        <a href="{% url 'health:health' %}">/health/</a> — процесс жив
-      </li>
-      <li>
-        <a href="{% url 'health:ready' %}">/ready/</a> — БД и кэш отвечают
-      </li>
-    </ul>
+    <h2>Ближайшие дедлайны</h2>
+    {% for course in deadlines %}
+      <p>
+        <a href="{% url 'web:course_detail' course.slug %}">{{ course.title }}</a>: {{ course.deadline }}
+      </p>
+    {% empty %}
+      <p class="lead">Горящих дедлайнов нет.</p>
+    {% endfor %}
+  </section>
+  <section class="card">
+    <h2>Новое</h2>
+    {% for item in notifications %}
+      <p>{{ item.title }} <span class="lead">· {{ item.when }}</span></p>
+    {% endfor %}
+    <a href="{% url 'web:notifications' %}">Все уведомления</a>
   </section>
 {% endblock content %}

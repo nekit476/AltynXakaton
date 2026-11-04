@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Расписание — Зачётка{% endblock %}
+{% block content %}
+  <h1>Расписание</h1>
+  <p class="lead">Неделя целиком. Переключение недель и перенос пар — позже.</p>
+  {% for day in days %}
+    <section class="card">
+      <h2>{{ day.name }}</h2>
+      {% for lesson in day.lessons %}
+        <p>
+          <strong>{{ lesson.time }}</strong> · {{ lesson.subject }} ({{ lesson.kind|lower }}) · {{ lesson.room }} · {{ lesson.teacher }}
+          {% if lesson.status %}<span class="badge badge-warn">{{ lesson.status }}</span>{% endif %}
+        </p>
+      {% empty %}
+        <p class="lead">Пар нет.</p>
+      {% endfor %}
+    </section>
+  {% endfor %}
+{% endblock content %}
