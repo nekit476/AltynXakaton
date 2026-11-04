@@ -22,13 +22,14 @@ env:
   # К базе ходят только тесты — у них есть сервис postgres.
   DATABASE_URL: postgres://dekanat:dekanat@localhost:5432/dekanat
 
+# У astral-sh/setup-uv нет плавающего мажорного тега (v10), поэтому версия полная.
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -62,7 +63,7 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -84,7 +85,7 @@ jobs:
       DJANGO_ALLOWED_HOSTS: zachetka.example.ru
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -109,7 +110,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
       - name: pip-audit (зависимости прода из uv.lock)
         run: |
           uv export --frozen --no-dev --format requirements-txt -o requirements.txt
