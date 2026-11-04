@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
   <h1>Зачётка</h1>
-  <p class="lead">Каркас запущен. Здесь будет экран «Сегодня».</p>
+  <p class="lead">Ты вошёл как {{ user.get_role_display|lower }}. Здесь будет экран «Сегодня».</p>
   <section class="card">
     <h2>Модули</h2>
     <ul>

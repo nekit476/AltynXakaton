@@ -11,5 +11,6 @@ from django.urls import include, path
 urlpatterns = [
     path(settings.DJANGO_ADMIN_PATH, admin.site.urls),
     path("", include("core.health.urls")),
+    path("", include("core.accounts.urls")),
     path("", include("web.urls")),
 ]

@@ -70,3 +70,55 @@ a {
 code {
   font-size: 14px;
 }
+
+.userbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.form {
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.form input[type="text"],
+.form input[type="password"] {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.form button {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.form-error {
+  color: #c62828;
+}
