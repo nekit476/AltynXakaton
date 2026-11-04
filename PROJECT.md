@@ -257,7 +257,7 @@ DATABASE_URL=postgres://dekanat:<пароль>@db.example.ru:5432/dekanat_b?sslm
 
 ## 8. Расхождения с планом
 
-Изменения относительно [02_architecture.md](docs/plan/02_architecture.md) §6 и таблицы «Зона кода» в [06_team_roadmap.md](docs/plan/06_team_roadmap.md). План в этих местах ещё не обновлён.
+Чем каркас отличается от первой версии плана. План обновлён 04.11: [02_architecture.md](docs/plan/02_architecture.md) §6, зоны в [06_team_roadmap.md](docs/plan/06_team_roadmap.md), обзор, личные планы и трекеры. Таблица оставлена как история решений.
 
 | В плане | Сделано | Почему |
 |---|---|---|

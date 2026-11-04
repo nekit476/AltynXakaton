@@ -31,12 +31,12 @@ S5 Тесты + выпуск    ·· ·· ·· ·· ·· ·· ·· ·· ·· ·�
 
 ## Команда
 
-Монолит делим по слоям. Контракт между B и C — сигнатуры сервисов с заглушками, поэтому C не ждёт реализации.
+Монолит делим по слоям, у каждого слоя своя папка-модуль: `core/`, `domain/`, `web/` и общий `tests/`. Контракт между B и C — сигнатуры сервисов с заглушками, поэтому C не ждёт реализации.
 
 | | A — Платформа и качество (Никита) | B — Учебная логика (участник 2) | C — Интерфейс и продукт (участник 3) |
 |---|---|---|---|
 | Делает | Django-каркас, `CLAUDE.md`, агенты и хуки · VPS, Docker Compose, Caddy, CI/CD · вход, сессии, права, аудит · экраны админки и статистика · матрица прав, E2E, k6, ZAP · отчёты по безопасности и нагрузке | Модели, миграции, сидер · сервисный контракт для C · расписание, переносы, конфликты · курсы, ДЗ, политики опоздания · оценки, учебный план, справки PDF+QR · Celery: напоминания, уведомления | Опрос студентов, разбор старого ЛК · дизайн-система на Tailwind, логотип · views, шаблоны и HTMX-фрагменты · мобильная версия, PWA, тёмная тема · доступность, Lighthouse, E2E · видео и сборка PDF для жюри |
-| Зона кода | `config/` `apps/core` `accounts` `adminpanel` `tests/` `infra/` `.github/` `.claude/` `load/` | `apps/*`: models, services, selectors, forms, tasks · `apps/org` · `apps/seed` | `apps/*`: views, urls · `templates/` · `static/` · `docs/screens/` |
+| Зона кода | `core/` (settings, users, права, вход, аудит, adminpanel) · `tests/` (каркас, `core/`, `authz/`, `e2e/`, `load/`) · `infra/` `scripts/` `.github/` `.claude/` | `domain/`: models, services, selectors, dto, forms, tasks · `domain/org` · `domain/seed` · `tests/domain/` | `web/`: views, urls, `templates/`, `static/` · `tests/web/` · `docs/screens/` |
 
 Личные планы: [plan_A.md](plan_A.md), [plan_B.md](plan_B.md), [plan_C.md](plan_C.md).
 

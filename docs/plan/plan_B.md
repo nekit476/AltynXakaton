@@ -171,16 +171,17 @@
 
 **Владею кодом:**
 
-- `apps/org/`
-- `apps/<schedule|courses|assignments|grades|requests|notifications>/: models, managers, services, selectors, forms, tasks`
-- `apps/seed/ (manage.py seed)`
-- `templates/certificates/ (шаблоны справок)`
+- `domain/org/`
+- `domain/<schedule|courses|assignments|grades|requests|notifications>/: models, managers, services, selectors, dto, forms, tasks`
+- `domain/seed/ (manage.py seed)`
+- `domain/requests/templates/certificates/ (шаблоны справок)`
+- `tests/domain/`
 - `миграции всех своих приложений`
 
 **Ревьюю у других:**
 
 - Views C — правильно ли вызывают сервисы, нет ли запросов к ORM в обход селекторов
-- PR A в apps/core/ — не ломают ли они твои модели
+- PR A в core/ — не ломают ли они твои модели
 
 ## Работа с Claude
 
@@ -201,7 +202,7 @@
 
 **Первые два дня (4–5.11):**
 
-1. ER-диаграмма и модели v1 (если Django-каркас A ещё не влит — во временной ветке)
+1. ER-диаграмма и модели v1 в domain/ (каркас уже в репозитории: scripts/setup.ps1 -Dev b)
 2. Сервисный контракт ядра к вечеру 5.11 — C начнёт по нему верстать
 3. ТЗ сидера: кто тестовые студенты, сколько массовки для нагрузки
 4. Согласовать с C поля DTO профиля, расписания и заявок

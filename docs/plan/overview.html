@@ -117,7 +117,7 @@ a{color:var(--accent)}
 </section>
 
 <section aria-labelledby="h-team">
-  <div class="side"><span class="label">Кто</span><h2 id="h-team">Команда</h2><p class="muted">Монолит делим по слоям. Контракт между B и C — сигнатуры сервисов с заглушками, поэтому C не ждёт реализации.</p></div>
+  <div class="side"><span class="label">Кто</span><h2 id="h-team">Команда</h2><p class="muted">Монолит делим по слоям, у каждого слоя своя папка-модуль: core/, domain/, web/ и общий tests/. Контракт между B и C — сигнатуры сервисов с заглушками, поэтому C не ждёт реализации.</p></div>
   <div class="body">
     <div class="team">
       <div class="who" style="--k:var(--a)">
@@ -131,7 +131,7 @@ a{color:var(--accent)}
           <li>Матрица прав, E2E, k6, ZAP</li>
           <li>Отчёты по безопасности и нагрузке</li>
         </ul>
-        <span class="zone">config/ apps/core accounts adminpanel tests/ infra/ .github/ .claude/ load/</span>
+        <span class="zone">core/ · tests/ (каркас, core/, authz/, e2e/, load/) · infra/ scripts/ .github/ .claude/</span>
       </div>
       <div class="who" style="--k:var(--b)">
         <h3><span class="tag">B</span>Учебная логика</h3>
@@ -144,7 +144,7 @@ a{color:var(--accent)}
           <li>Оценки, учебный план, справки PDF+QR</li>
           <li>Celery: напоминания, уведомления</li>
         </ul>
-        <span class="zone">apps/*: models services selectors forms tasks · apps/org · apps/seed</span>
+        <span class="zone">domain/: models services selectors dto forms tasks · domain/org · domain/seed · tests/domain/</span>
       </div>
       <div class="who" style="--k:var(--c)">
         <h3><span class="tag">C</span>Интерфейс и продукт</h3>
@@ -157,7 +157,7 @@ a{color:var(--accent)}
           <li>Доступность, Lighthouse, E2E</li>
           <li>Видео и сборка PDF для жюри</li>
         </ul>
-        <span class="zone">apps/*: views urls · templates/ · static/ · docs/screens/</span>
+        <span class="zone">web/: views urls templates/ static/ · tests/web/ · docs/screens/</span>
       </div>
     </div>
   </div>

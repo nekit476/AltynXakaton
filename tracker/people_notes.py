@@ -11,9 +11,10 @@ NOTES = {
         "mission": "Всё запускается одной командой, защищено, выдерживает нагрузку, и это доказано тестами.",
         "why": "Тестирование, безопасность и пайплайн — твоя профессия. Здесь ты сильнее всего, а цена ошибки "
                "(утечка чужих оценок, лежащий прод) самая высокая.",
-        "zone": ["config/ (settings, urls, celery)", "apps/core/ (User, роли, require_perm, audit, Storage)",
-                 "apps/accounts/", "apps/adminpanel/ + templates/adminpanel/", "tests/authz/, tests/e2e/",
-                 "infra/, Dockerfile, .github/workflows/", ".claude/", "load/"],
+        "zone": ["core/ (settings, urls, celery, errors, users, health)",
+                 "core/access, core/accounts, core/audit, core/adminpanel (+ свои шаблоны)",
+                 "tests/: conftest, test_architecture.py, core/, authz/, e2e/, load/ (k6)",
+                 "infra/, scripts/, Dockerfile, pyproject.toml, .github/workflows/", ".claude/"],
         "reviews": ["Все PR — на права: у каждого view есть require_perm, чтение идёт через for_student/for_teacher",
                     "Шаблоны — на |safe, mark_safe и inline-скрипты (вместе с агентом security-reviewer)"],
         "claude": [
@@ -25,7 +26,7 @@ NOTES = {
         "prompts": [
             "Прочитай docs/plan/02_architecture.md и 03_security.md. Подготовь docs/tz/S0_django_tz.md: "
             "структура проекта, settings base/dev/prod, кастомный User с ролью в первой миграции, compose, "
-            "Makefile, pre-commit. Раздел «отвергнутые варианты» обязателен. Код пока не пиши.",
+            "команды uv run poe, pre-commit. Раздел «отвергнутые варианты» обязателен. Код пока не пиши.",
             "По 03_security.md §3 настрой вход: свой Argon2-хешер с m=19 МиБ, t=2, p=1 первым в "
             "PASSWORD_HASHERS, SESSION_ENGINE cached_db, cookie __Host-sessionid, django-axes по логину. "
             "Тест проверяет, что хеш в БД начинается с argon2$argon2id$v=19$m=19456,t=2,p=1.",
@@ -37,9 +38,11 @@ NOTES = {
                 "CI/CD-пайплайн"],
         "first_day": ["Создать репозиторий, защиту main и доску; завести issues из 07_backlog.md",
                       "Django-проект с кастомным User в первом же коммите — до того, как B создаст модели",
-                      "Корневой CLAUDE.md и apps/CLAUDE.md — до того, как B и C начнут писать код",
+                      "Корневой CLAUDE.md и CLAUDE.md модулей (core, domain, web, tests) — до того, как B и C "
+                      "начнут писать код",
                       "Купить VPS и домен, прогнать harden-server.sh",
-                      "Проверить, что у B и C стоят Docker Desktop + WSL2 и git настроен на LF"],
+                      "Проверить, что у B и C прошёл scripts/setup.ps1 и git настроен на LF (Docker им не нужен: "
+                      "БД общая)"],
         "done": ["Тест-сторож и матрица прав зелёные, включая HTMX-фрагменты; merge без них невозможен",
                  "Сценарий «студент 1 ↔ студент 2» — везде 404",
                  "check --deploy без предупреждений, ZAP и pip-audit без High/Critical, gitleaks чистый",
@@ -51,11 +54,12 @@ NOTES = {
                    "и напоминаний.",
         "why": "Это самая плотная предметная часть. Ей нужен один хозяин, который держит модель данных в голове "
                "целиком. Твой интерфейс для C — сервисы и DTO, а не HTML.",
-        "zone": ["apps/org/", "apps/<schedule|courses|assignments|grades|requests|notifications>/: models, "
-                 "managers, services, selectors, forms, tasks", "apps/seed/ (manage.py seed)",
-                 "templates/certificates/ (шаблоны справок)", "миграции всех своих приложений"],
+        "zone": ["domain/org/", "domain/<schedule|courses|assignments|grades|requests|notifications>/: models, "
+                 "managers, services, selectors, dto, forms, tasks", "domain/seed/ (manage.py seed)",
+                 "domain/requests/templates/certificates/ (шаблоны справок)", "tests/domain/",
+                 "миграции всех своих приложений"],
         "reviews": ["Views C — правильно ли вызывают сервисы, нет ли запросов к ORM в обход селекторов",
-                    "PR A в apps/core/ — не ломают ли они твои модели"],
+                    "PR A в core/ — не ломают ли они твои модели"],
         "claude": [
             ("Навык new-service", "сигнатура и DTO → тесты на правила → реализация → обновить контракт для C"),
             ("Навык db-migration", "миграция + проверка отката на копии сидера + makemigrations --check"),
@@ -78,7 +82,7 @@ NOTES = {
                 "Политики опоздания и дедлайны", "Перенос пар с проверкой конфликтов",
                 "Справки: автозаполнение, PDF, QR, проверка подлинности", "Напоминания и Celery (on_commit, "
                 "идемпотентность), промпты B"],
-        "first_day": ["ER-диаграмма и модели v1 (если Django-каркас A ещё не влит — во временной ветке)",
+        "first_day": ["ER-диаграмма и модели v1 в domain/ (каркас уже в репозитории: scripts/setup.ps1 -Dev b)",
                       "Сервисный контракт ядра к вечеру 5.11 — C начнёт по нему верстать",
                       "ТЗ сидера: кто тестовые студенты, сколько массовки для нагрузки",
                       "Согласовать с C поля DTO профиля, расписания и заявок"],
@@ -93,9 +97,9 @@ NOTES = {
                    "телефона. И история проекта для жюри.",
         "why": "Два из четырёх критериев (проработанность идеи и качество) жюри оценивает по тому, что видит на "
                "экране и читает в PDF.",
-        "zone": ["apps/*/views.py, urls.py (кроме core, accounts, adminpanel)", "templates/ (кроме adminpanel/, "
-                 "certificates/)", "templates/ui/ — компоненты", "static/ (Tailwind, js/app.js, sw.js, vendor/)",
-                 "tests/e2e/ (вместе с A)", "логотип, тексты, PDF-описание, видео"],
+        "zone": ["web/: views, urls", "web/templates/ (base.html, layouts/, <раздел>/_partials/)",
+                 "web/templates/ui/ — компоненты", "web/static/ (Tailwind, js/app.js, sw.js, vendor/)",
+                 "tests/web/, tests/e2e/ (вместе с A)", "логотип, тексты, PDF-описание, видео"],
         "reviews": ["Экраны админки у A — на соответствие дизайн-системе", "Тексты ошибок в формах B — понятны ли "
                     "студенту"],
         "claude": [
@@ -111,7 +115,7 @@ NOTES = {
             "делаем» для PDF. Не придумывай того, чего на скриншотах не видно.",
             "Собери дизайн-токены «Зачётки» для Tailwind 4: палитра для светлой и тёмной темы, шрифт с "
             "кириллицей под OFL, радиусы, отступы. Покажи три варианта экрана «Сегодня» на ширине 360 px.",
-            "По templates/CLAUDE.md сделай base.html и компоненты templates/ui/ (кнопка, карточка, бейдж, пустое "
+            "По web/CLAUDE.md сделай base.html и компоненты web/templates/ui/ (кнопка, карточка, бейдж, пустое "
             "состояние, тост): нижняя панель на телефоне и сайдбар на ПК, CSRF-токен в hx-headers на body, без "
             "inline-скриптов.",
         ],

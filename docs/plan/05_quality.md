@@ -36,7 +36,7 @@
 - пороги (`thresholds`) прямо в сценарии роняют прогон;
 - у Locust Python-генератор упирается в GIL и сам становится узким местом.
 
-Сценарии k6 — это небольшие JS-файлы в `load/`, исключение из правила «всё на Python», оправданное инструментом.
+Сценарии k6 — это небольшие JS-файлы в `tests/load/`, исключение из правила «всё на Python», оправданное инструментом.
 
 | Сценарий | Профиль | Что имитирует | Пороги |
 |---|---|---|---|
@@ -53,13 +53,13 @@
 1. Прогон с отдельной машины, на VPS включён профиль `monitoring`.
 2. После прогона ищем узкое место: CPU у `web`, медленные запросы в логе PostgreSQL, N+1 (django-debug-toolbar на staging-копии), argon2.
 3. Чиним: `select_related` / `prefetch_related`, индекс, кэш фрагмента, число воркеров. Повторяем прогон.
-4. Каждую итерацию «было → стало» с графиками Grafana записываем в `load/REPORT.md`.
+4. Каждую итерацию «было → стало» с графиками Grafana записываем в `tests/load/REPORT.md`.
 
 **CSRF в k6:** сценарий сначала получает форму входа, вытаскивает `csrfmiddlewaretoken` и шлёт его с POST, как браузер. CSRF ради теста не отключаем.
 
 ## 3. Локальные проверки (pre-commit)
 
-`ruff check --fix`, `ruff format`, `mypy` (django-stubs, строго на `apps/*/services.py`), `djlint --reformat`, `gitleaks protect --staged`.
+`ruff check --fix`, `ruff format`, `mypy` (django-stubs, строго на `domain/*/services.py`), `djlint --reformat`, `gitleaks protect --staged`.
 Для Claude Code те же форматтеры висят на хуке после каждой правки файла (см. [06_team_roadmap.md](06_team_roadmap.md#5-работа-с-claude-code)).
 
 ## 4. CI/CD-пайплайн (GitHub Actions)
@@ -88,7 +88,7 @@ workflow_dispatch ──► load: k6 <сценарий> → отчёт арте�
 
 - **Один образ для `web`, `worker` и `beat`**, и в прод едет ровно тот `<sha>`, который прошёл staging.
 - **Allure-отчёт** публикуется артефактом или в GitHub Pages и пойдёт скриншотом в PDF.
-- **Dependabot** — pip, docker, github-actions. JS-библиотеки в `static/vendor/` обновляем руками раз за проект с проверкой changelog.
+- **Dependabot** — pip, docker, github-actions. JS-библиотеки в `web/static/vendor/` обновляем руками раз за проект с проверкой changelog.
 - **Секреты CI:** `DEPLOY_SSH_KEY`, `DEPLOY_HOST` (GHCR — встроенный `GITHUB_TOKEN`). В логи не печатаются.
 
 ## 5. Definition of Done для задачи

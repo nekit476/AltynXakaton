@@ -34,7 +34,7 @@
 |---|---|---|
 | A01 | Broken Access Control | **`LoginRequiredMiddleware`** (Django 5.1+): любая страница по умолчанию требует входа, публичные помечаются `@login_not_required`. На каждом view **`@require_perm(...)`**. Чтение только через менеджеры с областью видимости (`for_student`, `for_teacher`), на чужой объект — **404, а не 403**. Тест-сторож и матрица прав (п. 4). Формы с явным `fields = [...]`, никогда `__all__`, поэтому лишнее поле `score` в POST игнорируется. |
 | A02 | Security Misconfiguration | `DEBUG=False`. **`manage.py check --deploy --fail-level WARNING` в CI.** Свои страницы 403/404/500 без деталей. `ALLOWED_HOSTS` только наш домен. Django admin на секретном пути и только для staff-аккаунтов команды. Порты БД и Redis наружу не открыты. Контейнеры не от root. |
-| A03 | Software Supply Chain Failures | `uv.lock` с хешами. JS-библиотеки (htmx, alpine-csp, sortable, chart.js) лежат в `static/vendor/` с зафиксированными версиями, без CDN. Образы с фиксированными версиями. `pip-audit` и Trivy в CI, Dependabot. Лицензии только MIT/BSD/Apache/OFL. |
+| A03 | Software Supply Chain Failures | `uv.lock` с хешами. JS-библиотеки (htmx, alpine-csp, sortable, chart.js) лежат в `web/static/vendor/` с зафиксированными версиями, без CDN. Образы с фиксированными версиями. `pip-audit` и Trivy в CI, Dependabot. Лицензии только MIT/BSD/Apache/OFL. |
 | A04 | Cryptographic Failures | Только HTTPS (Caddy + HSTS). argon2id. `SECRET_KEY` и пароли только в `.env` на сервере (права 600) и в GitHub Secrets. `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`. |
 | A05 | Injection | ORM с параметрами. `raw()` и `extra()` запрещены правилом в `CLAUDE.md` и проверкой в ревью. Автоэкранирование шаблонов. **`\|safe` и `mark_safe` запрещены**, кроме одного фильтра `markdown`: он прогоняет текст преподавателя через `nh3`. Имена файлов не попадают в пути. |
 | A06 | Insecure Design | Бизнес-правила в сервисах на сервере: нельзя сдать после закрытия по политике, перенести чужую пару, поставить балл выше максимума. Лимиты на вход и загрузки. Подтверждение опасных действий. |
@@ -92,7 +92,7 @@ X-Robots-Tag: noindex, nofollow
 
 - **HTMX под строгий CSP:** `htmx.config.allowEval = false`, атрибуты `hx-on` не используем.
 - **Alpine — только CSP-сборка** (`@alpinejs/csp`): обычная сборка вычисляет выражения через `new Function` и требует `unsafe-eval`.
-- Inline-скриптов нет вообще. Конфигурация лежит в `static/js/app.js`.
+- Inline-скриптов нет вообще. Конфигурация лежит в `web/static/js/app.js`.
 - `style-src 'unsafe-inline'` — осознанная уступка: HTMX вставляет стиль индикатора загрузки. Скрипты при этом только свои.
 - Проверка на проде через Mozilla Observatory или securityheaders.com, цель — A и выше. Скриншот пойдёт в PDF.
 
@@ -147,4 +147,4 @@ X-Robots-Tag: noindex, nofollow
 - [ ] В БД пароли вида `argon2$argon2id$v=19$m=19456,t=2,p=1$...` — скриншот для PDF
 - [ ] `nmap` по IP: открыты только 22, 80, 443. Django admin не на `/admin/`.
 - [ ] Бэкап снят и восстановлен на чистую БД
-- [ ] В `static/` и шаблонах нет ключей (`grep`)
+- [ ] В `web/static/` и шаблонах нет ключей (`grep`)
