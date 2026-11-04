@@ -224,6 +224,20 @@ DATABASE_URL=postgres://dekanat:<пароль>@db.example.ru:5432/dekanat_b?sslm
 
 ---
 
+## 5a. CI (GitHub Actions)
+
+`.github/workflows/ci.yml` запускается на каждый pull request и на `main`. Все проверки повторяют локальные команды.
+
+| Job | Что проверяет | Локально |
+|---|---|---|
+| `lint` | ruff check, ruff format, djlint, запрещённые конструкции (`\|safe`, `mark_safe`, `raw()`, `extra()`, inline-скрипты, `hx-on`) | `uv run poe lint` |
+| `test` | pytest на PostgreSQL 17, Allure-результаты — артефактом | `uv run poe test` |
+| `django checks` | `check --deploy --fail-level WARNING` на прод-настройках, `makemigrations --check`, `collectstatic` | `uv run poe check` |
+| `security` | gitleaks по всей истории, pip-audit по зависимостям прода из `uv.lock` | — |
+| `docker image` | Образ собирается и отвечает на `/health/` | `uv run poe app-up` |
+
+Обновления зависимостей присылает Dependabot раз в неделю (`.github/dependabot.yml`).
+
 ## 6. Настройки (`.env`)
 
 Шаблон — `.env.example`. Настоящий `.env` создаёт bootstrap, в git он не попадает.
