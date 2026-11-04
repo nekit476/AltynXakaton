@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Вход — Зачётка{% endblock %}
+{% block content %}
+  {# Каркас формы входа. Дизайн — задача #21 (участник C). #}
+  <h1>Вход</h1>
+  <form method="post" class="card form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="form-error" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <label for="{{ form.username.id_for_label }}">Логин</label>
+    {{ form.username }}
+    <label for="{{ form.password.id_for_label }}">Пароль</label>
+    {{ form.password }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Войти</button>
+  </form>
+{% endblock content %}

@@ -4,6 +4,7 @@
 окружения: при разработке — из файла .env в корне, в Docker и на сервере — снаружи.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -24,9 +25,11 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 DJANGO_ADMIN_PATH = env.str("DJANGO_ADMIN_PATH", default="team-admin/")
 
 # ---------------------------------------------------------------- приложения по модулям
-# Участник 1 (A) — платформа: пользователи, служебные URL.
+# Участник 1 (A) — платформа: пользователи, права, вход, служебные URL.
 CORE_APPS = [
     "core.users",
+    "core.access",
+    "core.accounts",
     "core.health",
 ]
 # Участник 2 (B) — учебная логика: модели, сервисы, селекторы, задачи.
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_htmx",
+    "axes",
     *CORE_APPS,
     *DOMAIN_APPS,
     *WEB_APPS,
@@ -64,12 +68,17 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # request.htmx: view отдаёт фрагмент на HTMX-запрос и страницу целиком на обычный.
     "django_htmx.middleware.HtmxMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Вход обязателен по умолчанию (03_security.md §2, A01): публичный адрес помечается
+    # @login_not_required и вносится в core/access/public.py.
+    "core.access.middleware.DekanatLoginRequiredMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Последним: считает неудачные входы и блокирует перебор (документация django-axes).
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -113,6 +122,35 @@ CELERY_TASK_IGNORE_RESULT = True
 CELERY_TIMEZONE = "Europe/Moscow"
 # Расписание периодических задач (напоминания о дедлайнах) заполняет участник B.
 CELERY_BEAT_SCHEDULE: dict = {}
+
+# ---------------------------------------------------------------- вход
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "web:home"
+LOGOUT_REDIRECT_URL = "accounts:login"
+
+AUTHENTICATION_BACKENDS = [
+    # axes первым: заблокированный по перебору логин не дойдёт до проверки пароля.
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+# Блокировка по логину, а не по IP: в вузовском Wi-Fi все сидят за одним NAT (03_security.md §3).
+AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_RESET_ON_SUCCESS = True
+# axes.W006 советует добавить IP. Не добавляем намеренно: из-за общего NAT вуза блокировка
+# по IP закрыла бы вход всем студентам сразу. Мягкий лимит по IP — в Caddy (#27).
+SILENCED_SYSTEM_CHECKS = ["axes.W006"]
+
+PASSWORD_HASHERS = [
+    "core.accounts.hashers.DekanatArgon2PasswordHasher",
+    # Остальные — только чтобы проверить старые хеши; при входе они пересчитываются в argon2id.
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+]
+
+# Пароль демо-аккаунтов (manage.py demo_users). Только для разработки и staging.
+DEMO_PASSWORD = env.str("DEMO_PASSWORD", default="")
 
 # ---------------------------------------------------------------- пароли
 # Подход NIST: длина и запрет известных паролей вместо «заглавная + цифра» (03_security.md §3).

@@ -8,9 +8,19 @@
     <title>{% block title %}Зачётка{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
   </head>
-  <body>
+  {# CSRF-токен уходит с каждым HTMX-запросом: POST из фрагментов работает без отключения защиты. #}
+  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     <div class="concept-banner"
          role="note">Концепт для конкурса «Цифровой деканат будущего», не официальный сервис</div>
+    {% if user.is_authenticated %}
+      <header class="userbar">
+        <span>{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</span>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="link-button">Выйти</button>
+        </form>
+      </header>
+    {% endif %}
     <main class="page">
       {% block content %}{% endblock %}
     </main>
