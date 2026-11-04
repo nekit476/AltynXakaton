@@ -168,7 +168,8 @@ jobs:
           curl -fsS http://127.0.0.1:8080/ready/ | tee ready.json
           grep -q '"database": "ok"' ready.json
           grep -q '"cache": "ok"' ready.json
-          headers="$(curl -fsSI http://127.0.0.1:8080/health/)"
+          # GET, а не HEAD (curl -I): /health/ принимает только GET.
+          headers="$(curl -fsS -D - -o /dev/null http://127.0.0.1:8080/health/)"
           echo "$headers"
           for name in strict-transport-security x-content-type-options referrer-policy x-robots-tag; do
             echo "$headers" | grep -qi "^$name:" || { echo "нет заголовка $name"; exit 1; }
