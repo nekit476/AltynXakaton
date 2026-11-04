@@ -145,3 +145,42 @@ jobs:
           done
           docker logs web
           exit 1
+
+  stack:
+    name: docker compose stack
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE: docker compose -f infra/compose.yml --env-file .env --profile app
+    steps:
+      - uses: actions/checkout@v7
+      - name: Caddyfile валиден
+        run: >-
+          docker run --rm -v "$PWD/infra/caddy:/etc/caddy:ro" caddy:2-alpine
+          caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: весь стенд поднимается (postgres, redis, web, worker, beat, caddy)
+        run: |
+          # .env.example — рабочий шаблон: с ним стенд должен подниматься как есть.
+          cp .env.example .env
+          $COMPOSE up -d --build --wait --wait-timeout 300
+      - name: через Caddy отвечают /health/ и /ready/, заголовки на месте
+        run: |
+          curl -fsS http://127.0.0.1:8080/health/
+          curl -fsS http://127.0.0.1:8080/ready/ | tee ready.json
+          grep -q '"database": "ok"' ready.json
+          grep -q '"cache": "ok"' ready.json
+          headers="$(curl -fsSI http://127.0.0.1:8080/health/)"
+          echo "$headers"
+          for name in strict-transport-security x-content-type-options referrer-policy x-robots-tag; do
+            echo "$headers" | grep -qi "^$name:" || { echo "нет заголовка $name"; exit 1; }
+          done
+          # Главная без входа — переход на /login/: Django за Caddy работает целиком.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/)" = "302"
+      - name: базы участников созданы при первом запуске
+        run: |
+          dbs="$($COMPOSE exec -T postgres psql -U dekanat -d dekanat -tAc \
+            "select string_agg(datname, ',' order by datname) from pg_database where datname like 'dekanat\_%'")"
+          echo "$dbs"
+          test "$dbs" = "dekanat_a,dekanat_b,dekanat_c"
+      - name: логи стенда
+        if: failure()
+        run: $COMPOSE logs --tail 100
