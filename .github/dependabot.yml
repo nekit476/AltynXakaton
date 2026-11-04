@@ -1,0 +1,26 @@
+# Обновления зависимостей раз в неделю (05_quality.md §4).
+# Python-пакеты сгруппированы в один PR, чтобы за время хакатона не утонуть в мелких PR.
+# JS-библиотеки в web/static/vendor/ обновляются руками, с проверкой changelog.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      python:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

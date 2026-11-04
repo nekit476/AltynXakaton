@@ -1,0 +1,146 @@
+# CI на каждый pull request и на main (05_quality.md §4).
+# Те же проверки, что локально: `uv run poe lint`, `uv run poe test`, `uv run poe check`.
+# Сборка образа и деплой на staging/прод — задача #15, здесь образ только собирается и стартует.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Новый push в ветку отменяет устаревший прогон: минуты не тратятся на старые коммиты.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Настройки Django собираются при импорте и требуют строку подключения.
+  # К базе ходят только тесты — у них есть сервис postgres.
+  DATABASE_URL: postgres://dekanat:dekanat@localhost:5432/dekanat
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: ruff check
+        run: uv run ruff check .
+      - name: ruff format
+        run: uv run ruff format --check .
+      - name: djlint
+        run: |
+          uv run djlint core domain web --lint
+          uv run djlint core domain web --check
+      - name: запрещённые конструкции (|safe, mark_safe, raw, extra, inline-скрипты)
+        run: uv run python scripts/check_forbidden.py
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: dekanat
+          POSTGRES_PASSWORD: dekanat
+          POSTGRES_DB: dekanat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dekanat"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: pytest
+        run: uv run pytest --alluredir allure-results
+      - name: Allure-результаты
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results
+          path: allure-results
+          retention-days: 14
+
+  django:
+    name: django checks
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: core.settings.prod
+      DJANGO_ALLOWED_HOSTS: zachetka.example.ru
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: check --deploy, makemigrations --check, collectstatic
+        run: |
+          # Ключ случайный на каждый прогон: check --deploy проверяет его длину и разнообразие символов.
+          export DJANGO_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          uv run python manage.py check --deploy --fail-level WARNING
+          uv run python manage.py makemigrations --check --dry-run
+          # Хранилище с хешами в именах падает на ссылке на несуществующий файл статики.
+          uv run python manage.py collectstatic --noinput
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # gitleaks смотрит всю историю, а не только последний коммит.
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@v10
+      - name: pip-audit (зависимости прода из uv.lock)
+        run: |
+          uv export --frozen --no-dev --format requirements-txt -o requirements.txt
+          uvx pip-audit -r requirements.txt --disable-pip --require-hashes --progress-spinner off
+
+  docker:
+    name: docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: сборка образа
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: dekanat:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: образ стартует и отвечает на /health/
+        run: |
+          # /health/ не ходит в БД, поэтому строка подключения может указывать в никуда.
+          docker run -d --name web -p 8000:8000 \
+            -e DJANGO_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')" \
+            -e DJANGO_ALLOWED_HOSTS=localhost \
+            -e DATABASE_URL=postgres://smoke:smoke@127.0.0.1:1/smoke \
+            dekanat:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health/; then exit 0; fi
+            sleep 1
+          done
+          docker logs web
+          exit 1
