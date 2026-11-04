@@ -27,16 +27,6 @@ SESSION_COOKIE_NAME = "__Host-sessionid"
 # Без этого `check --deploy --fail-level WARNING` в CI падал бы на W004 и W008.
 SILENCED_SYSTEM_CHECKS = [*BASE_SILENCED_CHECKS, "security.W004", "security.W008"]
 
-# HSTS и редирект http → https ставит Caddy для всего сайта (03_security.md §5), а не Django:
-# так они действуют и на ответы, которые Django не обрабатывает (статика, файлы через X-Accel).
-# Без этого `check --deploy --fail-level WARNING` в CI падал бы на W004 и W008.
-SILENCED_SYSTEM_CHECKS = ["security.W004", "security.W008"]
-
-# HSTS и редирект http → https ставит Caddy для всего сайта (03_security.md §5), а не Django:
-# так они действуют и на ответы, которые Django не обрабатывает (статика, файлы через X-Accel).
-# Без этого `check --deploy --fail-level WARNING` в CI падал бы на W004 и W008.
-SILENCED_SYSTEM_CHECKS = ["security.W004", "security.W008"]
-
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     # Имена с хешем содержимого → вечный кэш в браузере, сжатие gzip/brotli заранее.
