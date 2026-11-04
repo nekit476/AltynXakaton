@@ -1,0 +1,40 @@
+# Обратный прокси перед Django (02_architecture.md §2, 03_security.md §5–6, 04_infra.md §5).
+# Локально: SITE_ADDRESS=:80 внутри контейнера → http://127.0.0.1:8080 снаружи.
+# На VPS: SITE_ADDRESS=домен — Caddy сам выпустит сертификат и включит редирект на HTTPS.
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	# Файлы ДЗ — до 25 МБ (03_security.md §6). Больше Caddy отклонит, не беспокоя Django.
+	request_body {
+		max_size 25MB
+	}
+
+	header {
+		# HSTS и редирект на HTTPS — здесь, а не в Django (см. SILENCED_SYSTEM_CHECKS в prod.py).
+		# По http браузер заголовок игнорирует, поэтому локально он безвреден.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	reverse_proxy web:8000 {
+		# Тело запроса читается целиком до отправки в Django: медленная загрузка с телефона
+		# не держит поток gunicorn (02_architecture.md §2, шаг 1 сдачи ДЗ).
+		request_buffers 25MB
+
+		# X-Accel-Redirect: Django проверил права и назвал файл, а отдаёт его Caddy —
+		# поток gunicorn не занят на время скачивания (03_security.md §6, задача #29).
+		@accel header X-Accel-Redirect *
+		handle_response @accel {
+			root * /srv/files
+			rewrite * {rp.header.X-Accel-Redirect}
+			header Content-Disposition attachment
+			header X-Content-Type-Options nosniff
+			file_server
+		}
+	}
+}

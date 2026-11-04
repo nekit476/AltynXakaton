@@ -176,6 +176,29 @@ uv run poe db-up
 Нужен Docker Desktop. PostgreSQL слушает `127.0.0.1:5433`: порт 5432 часто занят PostgreSQL, установленным прямо в систему (у Никиты так и есть), Redis — `127.0.0.1:6379`.
 Оба порта открыты только на этой машине.
 
+### Доступ B и C к серверу Никиты — Tailscale
+
+Tailscale — бесплатная приватная сеть: порты видны только участникам сети, а не интернету и не Wi-Fi вуза.
+
+1. Все трое ставят Tailscale (https://tailscale.com/download) и входят в **одну** сеть. Проще всего: Никита создаёт сеть и приглашает B и C.
+2. Никита узнаёт свой адрес в сети: `tailscale ip -4`, вида `100.x.y.z`.
+3. В `.env` у Никиты:
+   - `POSTGRES_BIND` и `REDIS_BIND` — этот адрес;
+   - `POSTGRES_PASSWORD` и `REDIS_PASSWORD` — свои, не из шаблона: шаблон лежит в публичном репозитории.
+
+   Затем `uv run poe db-up`. Если пароль меняется после первого запуска, его нужно сменить и в самой БД: `ALTER USER dekanat PASSWORD '…'` через `uv run poe db-psql`.
+4. У B и C в `.env`:
+   - `DATABASE_URL=postgres://dekanat:<пароль>@100.x.y.z:5433/dekanat_b` (у C — `dekanat_c`);
+   - `REDIS_URL=redis://:<пароль>@100.x.y.z:6379/2` (у C — `/3`).
+
+   Пароли Никита передаёт лично, не в чат репозитория.
+5. Проверка: `uv run poe db-check`.
+
+Ограничения:
+- база доступна, пока включён компьютер Никиты с Docker и Tailscale;
+- если Tailscale поднимется позже Docker, привязка к его адресу не сработает: перезапусти `uv run poe db-up`;
+- когда появится VPS, B и C меняют в `.env` только адрес.
+
 ### Скоро: сервер на VPS — код не меняется
 
 На сервере запускается тот же `infra/compose.yml`, порты так же слушают только `127.0.0.1`: БД наружу не открываем ([03_security.md](docs/plan/03_security.md) §8).
@@ -219,6 +242,9 @@ DATABASE_URL=postgres://dekanat:<пароль>@db.example.ru:5432/dekanat_b?sslm
 | `Dockerfile` | Один образ для web, worker и beat. Python 3.13-slim, зависимости через uv из `uv.lock`, `collectstatic`, пользователь не root, gunicorn gthread. Параметры gunicorn задаются через `GUNICORN_CMD_ARGS`. |
 | `infra/compose.yml` | `postgres` и `redis` запускаются всегда. `web`, `worker` и `beat` — только с профилем `app`. Порты слушают `127.0.0.1`. Тома: `pgdata`, `redisdata`, `files`. |
 | `infra/postgres/initdb/` | Создание баз участников при первом запуске. |
+| `infra/caddy/Caddyfile` | Обратный прокси перед web, как на проде: лимит тела 25 МБ с буферизацией, gzip/zstd, заголовки безопасности (HSTS, nosniff, Referrer-Policy, Permissions-Policy, noindex), отдача файлов по `X-Accel-Redirect`. Наружу открыт только Caddy (`127.0.0.1:8080`), web — только внутри сети compose. На VPS в `SITE_ADDRESS` ставится домен, и Caddy сам получает сертификат. |
+
+CI (job `docker compose stack`) поднимает весь стенд с `.env.example` и проверяет через Caddy `/health/`, `/ready/` (БД и Redis — `ok`), заголовки безопасности и базы участников.
 
 Прод-конфигурация (Caddy с HTTPS, лимиты памяти, `deploy.sh`) — задачи #5 и #15.
 
