@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Заявки — Зачётка{% endblock %}
+{% block content %}
+  <h1>Заявки и справки</h1>
+  <p class="lead">Заказ новой справки с автозаполнением — позже.</p>
+  {% for item in items %}
+    <section class="card">
+      <h2>{{ item.title }}</h2>
+      <p>
+        <span class="badge">{{ item.status }}</span> · подана {{ item.created }}
+      </p>
+      {% if item.note %}<p>{{ item.note }}</p>{% endif %}
+    </section>
+  {% empty %}
+    <p class="lead">Заявок пока нет — закажи первую справку.</p>
+  {% endfor %}
+{% endblock content %}

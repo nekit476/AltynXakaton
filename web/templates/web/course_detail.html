@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — Зачётка{% endblock %}
+{% block content %}
+  <p>
+    <a href="{% url 'web:courses' %}">← Все предметы</a>
+  </p>
+  <h1>{{ course.title }}</h1>
+  <p class="lead">{{ course.teacher }} · прогресс {{ course.progress }}%</p>
+  {% for section in course.sections %}
+    <section class="card">
+      <h2>{{ section.title }}</h2>
+      <ul>
+        {% for item in section.items %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+{% endblock content %}

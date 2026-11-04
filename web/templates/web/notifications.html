@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Уведомления — Зачётка{% endblock %}
+{% block content %}
+  <h1>Уведомления</h1>
+  {% for item in items %}
+    <section class="card">
+      <p>
+        {% if item.unread %}<span class="badge badge-warn">новое</span>{% endif %}
+        {{ item.title }}
+      </p>
+      <p class="lead">{{ item.when }}</p>
+    </section>
+  {% empty %}
+    <p class="lead">Уведомлений нет.</p>
+  {% endfor %}
+{% endblock content %}

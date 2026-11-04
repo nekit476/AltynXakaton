@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Мои курсы — Зачётка{% endblock %}
+{% block content %}
+  <h1>Мои курсы</h1>
+  <p class="lead">Заглушка кабинета преподавателя: конструктор разделов, ДЗ и проверка — позже.</p>
+  {% for course in courses %}
+    <section class="card">
+      <h2>{{ course.title }}</h2>
+      <p class="lead">Разделов: {{ course.sections|length }}</p>
+    </section>
+  {% endfor %}
+{% endblock content %}

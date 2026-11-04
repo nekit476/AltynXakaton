@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Предметы — Зачётка{% endblock %}
+{% block content %}
+  <h1>Предметы семестра</h1>
+  {% for course in courses %}
+    <section class="card">
+      <h2>
+        <a href="{% url 'web:course_detail' course.slug %}">{{ course.title }}</a>
+      </h2>
+      <p class="lead">{{ course.teacher }}</p>
+      <progress value="{{ course.progress }}" max="100">{{ course.progress }}%</progress>
+      {% if course.deadline %}<p>Ближайший дедлайн: {{ course.deadline }}</p>{% endif %}
+    </section>
+  {% endfor %}
+{% endblock content %}

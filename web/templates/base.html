@@ -20,6 +20,35 @@
           <button type="submit" class="link-button">Выйти</button>
         </form>
       </header>
+      {# Пункты меню показываются по правам роли. Каркас: нижняя панель на телефоне — задача #19. #}
+      <nav class="nav" aria-label="Разделы">
+        {% with current=request.resolver_match.url_name %}
+          <a href="{% url 'web:home' %}"
+             {% if current == 'home' %}aria-current="page"{% endif %}>Сегодня</a>
+          <a href="{% url 'web:schedule' %}"
+             {% if current == 'schedule' %}aria-current="page"{% endif %}>Расписание</a>
+          {% if perms.access.view_own_study %}
+            <a href="{% url 'web:courses' %}"
+               {% if current == 'courses' or current == 'course_detail' %}aria-current="page"{% endif %}>Предметы</a>
+            <a href="{% url 'web:grades' %}"
+               {% if current == 'grades' %}aria-current="page"{% endif %}>Оценки</a>
+          {% endif %}
+          {% if perms.access.create_requests %}
+            <a href="{% url 'web:requests' %}"
+               {% if current == 'requests' %}aria-current="page"{% endif %}>Заявки</a>
+          {% endif %}
+          {% if perms.access.manage_own_courses %}
+            <a href="{% url 'web:teacher_courses' %}"
+               {% if current == 'teacher_courses' %}aria-current="page"{% endif %}>Мои курсы</a>
+          {% endif %}
+          {% if perms.access.view_statistics %}
+            <a href="{% url 'web:admin_overview' %}"
+               {% if current == 'admin_overview' %}aria-current="page"{% endif %}>Обзор</a>
+          {% endif %}
+          <a href="{% url 'web:notifications' %}"
+             {% if current == 'notifications' %}aria-current="page"{% endif %}>Уведомления</a>
+        {% endwith %}
+      </nav>
     {% endif %}
     <main class="page">
       {% block content %}{% endblock %}

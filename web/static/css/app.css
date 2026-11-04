@@ -119,6 +119,66 @@ code {
   cursor: pointer;
 }
 
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav a {
+  padding: 4px 0;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav a[aria-current="page"] {
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.badge-ok {
+  border-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.badge-warn {
+  border-color: #b26a00;
+  color: #b26a00;
+}
+
+.badge-bad {
+  border-color: #c62828;
+  color: #c62828;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+progress {
+  width: 100%;
+}
+
 .form-error {
   color: #c62828;
 }

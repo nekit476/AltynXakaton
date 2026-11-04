@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Оценки — Зачётка{% endblock %}
+{% block content %}
+  <h1>Успеваемость</h1>
+  {% if debts %}
+    <p class="badge badge-bad">Есть долги: {{ debts|length }}</p>
+  {% else %}
+    <p class="badge badge-ok">Долгов нет</p>
+  {% endif %}
+  <section class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Предмет</th>
+          <th>Баллы</th>
+          <th>Контроль</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grade in grades %}
+          <tr>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.points }} / {{ grade.max }}</td>
+            <td>{{ grade.control }}</td>
+            <td>
+              {% if grade.state == "debt" %}
+                <span class="badge badge-bad">{{ grade.note }}</span>
+              {% elif grade.note %}
+                <span class="badge badge-ok">{{ grade.note }}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock content %}
