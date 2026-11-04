@@ -11,6 +11,10 @@ updates:
     groups:
       python:
         patterns: ["*"]
+    ignore:
+      # Проект держится на Django 5.2 LTS (02_architecture.md §1): берём только патчи 5.2.x.
+      - dependency-name: django
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: docker
     directory: /
