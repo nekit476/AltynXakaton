@@ -11,6 +11,11 @@
 
 Нужен только git. Python, uv и все зависимости скрипт поставит сам.
 
+```bash
+git clone https://github.com/nekit476/AltynXakaton.git
+cd AltynXakaton
+```
+
 **Windows (PowerShell):**
 
 ```powershell

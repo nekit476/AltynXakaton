@@ -6,6 +6,11 @@ Django 5.2 · HTMX · PostgreSQL · Redis · Celery · Docker.
 
 ## Запуск
 
+```bash
+git clone https://github.com/nekit476/AltynXakaton.git
+cd AltynXakaton
+```
+
 Windows:
 
 ```powershell
@@ -27,6 +32,10 @@ uv run poe dev
 ```
 
 Сервер — http://127.0.0.1:8000, список команд — `uv run poe`.
+
+## Как вносить изменения
+
+Ветка `<буква>/<id>-<кратко>` от `main` → коммиты → pull request на GitHub. В `main` попадает только через PR.
 
 ## Документы
 
