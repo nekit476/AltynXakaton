@@ -1,0 +1,43 @@
+# Проверки перед каждым коммитом. Ставятся `uv run poe setup` (pre-commit install).
+# ruff и djlint — локальные хуки через uv: версии берутся из uv.lock, а не дублируются здесь.
+# docs/plan и tracker собираются генераторами — правки хуков пропали бы при следующей сборке.
+exclude: ^(docs/plan/|tracker/)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        exclude: \.(ps1|cmd)$
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix --force-exclude
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types: [python]
+      - id: djlint
+        name: djlint
+        entry: uv run djlint --reformat --lint
+        language: system
+        files: \.html$
+      - id: no-env-files
+        name: .env не коммитим
+        entry: .env и прочие файлы с секретами в git не кладутся — только .env.example
+        language: fail
+        files: (^|/)\.env(\..+)?$
+        exclude: \.env\.example$

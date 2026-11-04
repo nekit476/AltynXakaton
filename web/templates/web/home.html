@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Зачётка</h1>
+  <p class="lead">Каркас запущен. Здесь будет экран «Сегодня».</p>
+  <section class="card">
+    <h2>Модули</h2>
+    <ul>
+      <li>
+        <code>core/</code> — участник 1 (A): платформа, пользователи, права, служебные URL
+      </li>
+      <li>
+        <code>domain/</code> — участник 2 (B): модели, сервисы, селекторы, задачи
+      </li>
+      <li>
+        <code>web/</code> — участник 3 (C): views, шаблоны, статика
+      </li>
+      <li>
+        <code>tests/</code> — все тесты по модулям
+      </li>
+    </ul>
+  </section>
+  <section class="card">
+    <h2>Служебное</h2>
+    <ul>
+      <li>
+        <a href="{% url 'health:health' %}">/health/</a> — процесс жив
+      </li>
+      <li>
+        <a href="{% url 'health:ready' %}">/ready/</a> — БД и кэш отвечают
+      </li>
+    </ul>
+  </section>
+{% endblock content %}

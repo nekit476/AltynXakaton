@@ -1,0 +1,72 @@
+/* Временные стили каркаса. Дизайн-система на Tailwind — задача #19 (участник C). */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c2430;
+  --muted: #5b6676;
+  --accent: #2357d6;
+  --banner: #fff4d6;
+  --border: #e2e6ec;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161c;
+    --surface: #1b212a;
+    --text: #e6eaf0;
+    --muted: #9aa5b4;
+    --accent: #7aa2ff;
+    --banner: #3a3216;
+    --border: #2a323d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.concept-banner {
+  padding: 8px 16px;
+  background: var(--banner);
+  font-size: 14px;
+  text-align: center;
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.lead {
+  color: var(--muted);
+}
+
+.card {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-size: 14px;
+}

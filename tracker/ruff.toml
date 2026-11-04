@@ -1,0 +1,11 @@
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Кириллица в строках и комментариях — норма для проекта.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[lint.per-file-ignores]
+# Таблица задач: одна задача — одна строка, так её удобно сверять с бэклогом.
+"tracker_data.py" = ["E501"]
