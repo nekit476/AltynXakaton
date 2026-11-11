@@ -2,7 +2,7 @@
 # Один образ для web, worker и beat — разная только команда запуска (02_architecture.md §2).
 # Стадия сборки Tailwind (standalone CLI, без Node) добавится в задаче #19.
 
-FROM python:3.13-slim
+FROM python:3.15-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
